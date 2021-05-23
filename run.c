@@ -17,11 +17,13 @@ int take_pc = 0;
 
 int end = 0;
 int jump = 0;
+
 int stall = 0;
 int collision = 0;
 
 int freak_acc = 0;
 uint32_t save_index_1 = 0;
+
 uint32_t save_index_2 = 0;
 uint32_t save_value = 0;
 
@@ -42,6 +44,7 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ //updat
                 *uses_rd_flag = -1;
                 return NO_WRITE ;
             }
+            
             *uses_rd_flag = 1;
             
             if (flag)
@@ -49,6 +52,7 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ //updat
                 CURRENT_STATE.REGS[rd] = CURRENT_STATE.MEM_WB_ALU_OUT; // write the value from ALU to rd reg
                 return CURRENT_STATE.MEM_WB_ALU_OUT;
             }
+            
             else
                 return CURRENT_STATE.EX_MEM_ALU_OUT;
 
@@ -61,6 +65,7 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ //updat
                 *uses_rd_flag = -1;
                 return NO_WRITE;
             }
+            
             *uses_rd_flag = 2; // uses 31st register
 
             if (flag)
@@ -78,6 +83,7 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ //updat
                 *uses_rd_flag = -1;
                 return NO_WRITE;
             }
+            
             if (opcode == 0x23) // if load
             {
                 if (flag)
@@ -85,6 +91,7 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ //updat
                 *uses_rd_flag = 0;
                 return CURRENT_STATE.MEM_WB_MEM_OUT; // NOT CORRECT CHANGE WHEN HANDLING LOAD USE
             }
+            
             else 
             {
                 *uses_rd_flag = 0;

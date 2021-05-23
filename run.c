@@ -28,7 +28,7 @@ uint32_t save_index_2 = 0;
 uint32_t save_value = 0;
 
 
-int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ //update regs if flag == 1
+int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ 
 
     short opcode = OPCODE(inst_to_exec);
     short funct_field = FUNC(inst_to_exec);
@@ -37,9 +37,9 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ //updat
 
     switch(opcode)
     {
-        case 0x0: // R instruction
+        case 0x0: 
 
-            if (funct_field == 0x8) // jr instruction
+            if (funct_field == 0x8)
             {
                 *uses_rd_flag = -1;
                 return NO_WRITE ;
@@ -49,47 +49,47 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ //updat
             
             if (flag)
             {
-                CURRENT_STATE.REGS[rd] = CURRENT_STATE.MEM_WB_ALU_OUT; // write the value from ALU to rd reg
+                CURRENT_STATE.REGS[rd] = CURRENT_STATE.MEM_WB_ALU_OUT;
                 return CURRENT_STATE.MEM_WB_ALU_OUT;
             }
             
             else
                 return CURRENT_STATE.EX_MEM_ALU_OUT;
 
-        case 0x2: // j;
+        case 0x2: 
 
-        case 0x3: //jal
+        case 0x3: 
 
-            if (opcode == 0x2) // j instruction
+            if (opcode == 0x2)
             {
                 *uses_rd_flag = -1;
                 return NO_WRITE;
             }
             
-            *uses_rd_flag = 2; // uses 31st register
+            *uses_rd_flag = 2; 
 
             if (flag)
             {
-                CURRENT_STATE.REGS[31] = CURRENT_STATE.MEM_WB_NPC + 4; // write the next pc value to 31 reg
+                CURRENT_STATE.REGS[31] = CURRENT_STATE.MEM_WB_NPC + 4; 
                 return CURRENT_STATE.MEM_WB_NPC + 4 ;
             }
             else
                 return CURRENT_STATE.EX_MEM_NPC + 4;
 
-        default:  // I instruction
+        default:  
 
-            if (opcode == 0x4 || opcode == 0x5 || opcode == 0x2B) // bne , beq and sw dont write to reg
+            if (opcode == 0x4 || opcode == 0x5 || opcode == 0x2B) 
             {
                 *uses_rd_flag = -1;
                 return NO_WRITE;
             }
             
-            if (opcode == 0x23) // if load
+            if (opcode == 0x23) 
             {
                 if (flag)
                     CURRENT_STATE.REGS[rt] = CURRENT_STATE.MEM_WB_MEM_OUT;
                 *uses_rd_flag = 0;
-                return CURRENT_STATE.MEM_WB_MEM_OUT; // NOT CORRECT CHANGE WHEN HANDLING LOAD USE
+                return CURRENT_STATE.MEM_WB_MEM_OUT; 
             }
             
             else 
@@ -112,16 +112,16 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ //updat
 
 void to_mem_forwarding_check_and_set_control()
 {
-  instruction* wb_inst  = CURRENT_STATE.MEM_WB_INST; // get the instruction from the mem/wb latch
-  instruction* mem_inst = CURRENT_STATE.EX_MEM_INST; // get the instruction from the ex/mem latch
-
-  if (OPCODE(wb_inst) == 0x23 && OPCODE(mem_inst) == 0x2B) // if load is followed by a store
+  instruction* wb_inst  = CURRENT_STATE.MEM_WB_INST; 
+  instruction* mem_inst = CURRENT_STATE.EX_MEM_INST; 
+    
+  if (OPCODE(wb_inst) == 0x23 && OPCODE(mem_inst) == 0x2B) 
   {
       unsigned char wb_rt = RT(wb_inst),mem_rt = RT(mem_inst) ;
       
-      if ( (wb_rt == mem_rt) && wb_rt != 0) // if lw rt, sw rt and rt != 0 needs forwarding
+      if ( (wb_rt == mem_rt) && wb_rt != 0) 
       {
-        CURRENT_STATE.write_data_mem_source = 1; // needs forwarding
+        CURRENT_STATE.write_data_mem_source = 1; 
         CURRENT_STATE.MEM_WB_to_MEM_DATA_FORWARD_VALUE = CURRENT_STATE.MEM_WB_MEM_OUT;
       }
       else
@@ -129,7 +129,7 @@ void to_mem_forwarding_check_and_set_control()
   }
   else
   {
-    CURRENT_STATE.write_data_mem_source = 0; // dont use forwarded value
+    CURRENT_STATE.write_data_mem_source = 0; 
   }
 
 }
@@ -149,8 +149,7 @@ void rd_and_source(int uses_rd,unsigned char reg, int *source,instruction* inst,
                     *source = 0;
             break;
 
-        case 2: // jal instruction
-
+        case 2: 
             if (reg == 31) 
                 *source = value;
 
@@ -159,7 +158,7 @@ void rd_and_source(int uses_rd,unsigned char reg, int *source,instruction* inst,
                     *source = 0;
             break;
 
-        case 0: // uses rt
+        case 0: 
 
             if (reg == RT(inst) && reg != 0)
                 *source = value;
@@ -188,52 +187,52 @@ void forwarding_check_mem_wb(int* first, int* second,int uses_rd)
     switch(opcode)
     {
 
-        case 0x0: // R instruction  
-            if (funct_field == 0x00 || funct_field == 0x02) // if sll or srl, doesnt use rs
+        case 0x0:   
+            if (funct_field == 0x00 || funct_field == 0x02) 
             {
                 *first = 0;
-                unsigned char rt = RT(id_ex_inst); // uses rt
+                unsigned char rt = RT(id_ex_inst); 
                 rd_and_source(uses_rd,rt,second,CURRENT_STATE.MEM_WB_INST,1,1);
             }
-            else // uses rs field
+            else 
             {
                 unsigned char rs = RS(id_ex_inst);
                 rd_and_source(uses_rd,rs,first,CURRENT_STATE.MEM_WB_INST,1,1);
 
-                if (funct_field == 0x8) // jr doesnt use rt
+                if (funct_field == 0x8) 
                     *second = 0;
                 else
                 {
-                    unsigned char rt = RT(id_ex_inst); // uses rt
+                    unsigned char rt = RT(id_ex_inst); 
                     rd_and_source(uses_rd,rt,second,CURRENT_STATE.MEM_WB_INST,1,1);    
                 }
             }
             break;
         
-        case 0x2: // j
+        case 0x2: 
 
-        case 0x3: // jal
+        case 0x3: 
             *first = 0;
             *second = 0;
             break;
 
-        default:// I instructions
-            if (opcode == 0xF) // lui doesnt use rs, and rt is dest, not source
+        default:
+            if (opcode == 0xF) 
             {
                 *first = 0;
                 *second = 0;
             }
 
-            else // uses rs
+            else 
             {
                 rd_and_source(uses_rd,rs,first,CURRENT_STATE.MEM_WB_INST,1,1);
 
-                if (opcode == 0x2B || opcode == 0x4 || opcode == 0x5) // sw , BEQ AND BNE uses rt as source
+                if (opcode == 0x2B || opcode == 0x4 || opcode == 0x5) 
                 {
-                    unsigned char rt = RT(id_ex_inst); // uses rt
+                    unsigned char rt = RT(id_ex_inst); 
                     rd_and_source(uses_rd,rt,second,CURRENT_STATE.MEM_WB_INST,1,1);
                 }
-                else // doesnt use rt as source
+                else 
                     *second = 0;
             }
 
@@ -251,22 +250,22 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
 
     switch(opcode)
     {
-        case 0x0: // R instruction  
+        case 0x0: 
             if (funct_field == 0x00 || funct_field == 0x02) // if sll or srl, doesnt use rs
             {
                 unsigned char rt = RT(id_ex_inst); // uses rt
                 rd_and_source(uses_rd,rt,second,CURRENT_STATE.EX_MEM_INST,0,2);
             }
-            else // uses rs field
+            else 
             {
                 unsigned char rs = RS(id_ex_inst);
                 rd_and_source(uses_rd,rs,first,CURRENT_STATE.EX_MEM_INST,0,2);
 
-                if (funct_field == 0x8) // jr doesnt use rt
+                if (funct_field == 0x8) 
                     ;
                 else
                 {
-                    unsigned char rt = RT(id_ex_inst); // uses rt
+                    unsigned char rt = RT(id_ex_inst); 
                     rd_and_source(uses_rd,rt,second,CURRENT_STATE.EX_MEM_INST,0,2); 
                 }
             }
@@ -277,20 +276,20 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
         case 0x3:
             break;
 
-        default: // I instructions
-            if (opcode == 0xF) // lui doesnt use rs, and rt is dest, not source
+        default: 
+            if (opcode == 0xF) 
                 ;
-            else // uses rs
+            else 
             {
                 unsigned char rs = RS(id_ex_inst);
                 rd_and_source(uses_rd,rs,first,CURRENT_STATE.EX_MEM_INST,0,2);
 
-                if (opcode == 0x2B || opcode == 0x4 || opcode == 0x5) // sw , BEQ AND BNE uses rt as source
+                if (opcode == 0x2B || opcode == 0x4 || opcode == 0x5) 
                 {
-                    unsigned char rt = RT(id_ex_inst); // uses rt
+                    unsigned char rt = RT(id_ex_inst); 
                     rd_and_source(uses_rd,rt,second,CURRENT_STATE.EX_MEM_INST,0,2);
                 }
-                else // doesnt use rt as source
+                else 
                     ;
             }
     }
@@ -302,20 +301,20 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
 void to_alu_forwarding_check_wb(int write,int uses_rd)
 {
     
-    int forwarding_index_1 = 0,forwarding_index_2 = 0;// 0 means doesnt need forwarding, 1 means requires
+    int forwarding_index_1 = 0,forwarding_index_2 = 0;
 
-    if (write == NO_WRITE) // Since it is not a proper instruction dont need forwarding from MEM/WB
+    if (write == NO_WRITE) 
     {
         CURRENT_STATE.first_alu_source = 0;
         CURRENT_STATE.second_alu_source = 0;
     }
-    else // the instuction in ID/EX requires , so maybe forwarding ?????
+    else 
     {
         forwarding_check_mem_wb(&forwarding_index_1,&forwarding_index_2,uses_rd);
 
-        if (forwarding_index_1 == 1) // needs forwarding from MEM/WB
+        if (forwarding_index_1 == 1) 
         {
-            CURRENT_STATE.MEM_WB_ALU_FORWARD_VALUE = write; // whatever u write to reg
+            CURRENT_STATE.MEM_WB_ALU_FORWARD_VALUE = write; 
             CURRENT_STATE.first_alu_source = 1;
         }
         else if (forwarding_index_1 == 0)
@@ -323,7 +322,7 @@ void to_alu_forwarding_check_wb(int write,int uses_rd)
 
         if (forwarding_index_2 == 1)
         {
-            CURRENT_STATE.MEM_WB_ALU_FORWARD_VALUE = write; // whatever u write to reg
+            CURRENT_STATE.MEM_WB_ALU_FORWARD_VALUE = write; 
             CURRENT_STATE.second_alu_source = 1;
         }
         else if (forwarding_index_2 == 0)
@@ -339,21 +338,21 @@ void to_alu_forwarding_check_ex()
     int rd_use;
     instruction* ex_mem = CURRENT_STATE.EX_MEM_INST;
 
-    int write_2 = write_to_reg(ex_mem,&rd_use,0); // flag should be 0, dont want reg update
+    int write_2 = write_to_reg(ex_mem,&rd_use,0); 
 
     if (write_2 != NO_WRITE)
     {
         forwarding_check_ex_mem(&forwarding_index_1,&forwarding_index_2,rd_use);
 
-        if (forwarding_index_1 == 2) // needs forwarding from EX/MEM
+        if (forwarding_index_1 == 2) 
         {
-            CURRENT_STATE.EX_MEM_ALU_FORWARD_VALUE = write_2; // whatever u write to reg
+            CURRENT_STATE.EX_MEM_ALU_FORWARD_VALUE = write_2; 
             CURRENT_STATE.first_alu_source = 2;
         }
         
         if (forwarding_index_2 == 2)
         {
-            CURRENT_STATE.EX_MEM_ALU_FORWARD_VALUE = write_2; // whatever u write to reg
+            CURRENT_STATE.EX_MEM_ALU_FORWARD_VALUE = write_2; 
             CURRENT_STATE.second_alu_source = 2;
         }  
 
@@ -374,7 +373,7 @@ int stall_check()
 
     short op = OPCODE(ex_mem);
 
-    if (op != 0x23) // if it is not a load instruction
+    if (op != 0x23) 
         return 0;
 
     unsigned char load_rt = RT(ex_mem);
@@ -385,13 +384,13 @@ int stall_check()
     switch(opcode)
     {
 
-        case 0x0://R instruction
-            if (func == 0x00 || func == 0x02) // shift instructions
+        case 0x0:
+            if (func == 0x00 || func == 0x02) 
             {
                 unsigned char rt = RT(id_ex);
                 return (rt == load_rt);
             }
-            else if(func == 0x8)//jr
+            else if(func == 0x8)
             {
                 unsigned char rs = RS(id_ex);
                 return (rs == load_rt);
@@ -411,10 +410,10 @@ int stall_check()
             break;
         
         default:
-            if (opcode == 0xF) // lui doesnt have source
+            if (opcode == 0xF) 
                 return 0;
             
-            else if (opcode == 0x4 || opcode == 0x5) // beq and bne have 2 sources
+            else if (opcode == 0x4 || opcode == 0x5) 
             {
                 unsigned char rt = RT(id_ex);
                 unsigned char rs = RS(id_ex);
@@ -514,28 +513,28 @@ uint32_t execute_R(short funct_field,uint32_t alu_source_1,uint32_t alu_source_2
 
     switch(funct_field)
     {
-        case 0x21: //addu
+        case 0x21: 
             ALU_result = alu_source_1 + alu_source_2;
             break;
-        case 0x24: // and
+        case 0x24: 
             ALU_result = alu_source_1 & alu_source_2;
             break;
-        case 0x27: // nor
+        case 0x27: 
             ALU_result = ~(alu_source_1 | alu_source_2);
             break;
-        case 0x25: // or
+        case 0x25: 
             ALU_result = alu_source_1 | alu_source_2;
             break;
-        case 0x2B: //sltu
+        case 0x2B: 
             ALU_result = (alu_source_1 < alu_source_2)? TRUE : FALSE;
             break;
-        case 0x00: //sll
+        case 0x00: 
             ALU_result =  alu_source_2 << shamt;
             break;
-        case 0x02: //srl
+        case 0x02: 
             ALU_result =  alu_source_2 >> shamt;
             break;
-        case 0x23: //subu
+        case 0x23: 
             ALU_result = alu_source_1 - alu_source_2;
             break;
     }
@@ -552,25 +551,25 @@ uint32_t execute_I(uint32_t alu_source_1,short opcode, int sign_extended,uint32_
 
     switch(opcode)
     {
-        case 0x9: //addiu
+        case 0x9: 
             ALU_result = alu_source_1 + sign_extended;
             break;
-        case 0xC: //andi
+        case 0xC: 
             ALU_result = alu_source_1 & zero_extended;
             break;
-        case 0xF: //lui
+        case 0xF: 
             ALU_result = zero_extended << 16; 
             break;
-        case 0xD: //ori
+        case 0xD: 
             ALU_result = alu_source_1 | zero_extended;   
             break;
-        case 0xB: //sltiu
+        case 0xB: 
             ALU_result = (alu_source_1 < sign_extended)? TRUE : FALSE;
             break;  
-        case 0x23: //lw
+        case 0x23: 
             ALU_result = sign_extended + alu_source_1;
             break;
-        case 0x2B: //sw
+        case 0x2B: 
             ALU_result = sign_extended + alu_source_1;
             break;
     }
@@ -620,7 +619,7 @@ void Execute_ALU_write()
             alu_source_2 = save_value;
     }
 
-    uint32_t ALU_result; // why is it always unsigned
+    uint32_t ALU_result; 
     uint32_t ALU_zero = 0;
  
     short opcode = OPCODE(CURRENT_STATE.ID_EX_INST);
@@ -633,31 +632,31 @@ void Execute_ALU_write()
     switch(opcode)
     {
 
-        case 0x0:// R instructions
+        case 0x0:
 
-            if (funct_field == 0x8) // if jr do something later
+            if (funct_field == 0x8) 
             {
                 jump = 1;
-                CURRENT_STATE.PC = alu_source_1; // written the jump target addr
+                CURRENT_STATE.PC = alu_source_1; 
             }
             else
                 ALU_result = execute_R(funct_field,alu_source_1,alu_source_2,shamt);
             break;
             
-        case 0x2: // jumps
+        case 0x2: 
 
         case 0x3:
             jump = 1;
             CURRENT_STATE.PC = upper_4_bits | jump_target;
             break;
 
-        default:// I instructions
-            if (opcode ==  0x4) //BEQ
+        default:
+            if (opcode ==  0x4) 
             {
                 if (alu_source_1 == alu_source_2)
                     ALU_zero = 1;
             } 
-            else if (opcode == 0x5 ) //BNE
+            else if (opcode == 0x5 ) 
             {
                 if (alu_source_1 != alu_source_2)
                     ALU_zero = 1;
@@ -713,7 +712,7 @@ void MEM_Stage()
     else
         flush = 0;
     
-    if (stall_check()) //check stall
+    if (stall_check()) 
     {
         stall = 1;
         freak_acc = 1;
@@ -728,11 +727,11 @@ void MEM_Stage()
     
     uint32_t address = CURRENT_STATE.EX_MEM_ALU_OUT;
 
-    if (opcode == 0x23) // if load instruction
+    if (opcode == 0x23) 
     {
-        CURRENT_STATE.MEM_WB_MEM_OUT = mem_read_32(address); //  update the latch
+        CURRENT_STATE.MEM_WB_MEM_OUT = mem_read_32(address); 
     }
-    else if (opcode == 0x2B) //sw
+    else if (opcode == 0x2B) 
     {
         uint32_t write_value;
 
@@ -756,7 +755,7 @@ void WB_Stage()
 {
     CURRENT_STATE.PIPE[4] = CURRENT_STATE.PIPE[3];
 
-    if (CURRENT_STATE.MEM_WB_stall_or_no_inst) // if stall or no instruction do nothing
+    if (CURRENT_STATE.MEM_WB_stall_or_no_inst) 
     {
         collision = 1;
         return;
@@ -768,7 +767,7 @@ void WB_Stage()
 
     
     int uses_rd;
-    int writes = write_to_reg(CURRENT_STATE.MEM_WB_INST,&uses_rd,1); // flag should be set to 1
+    int writes = write_to_reg(CURRENT_STATE.MEM_WB_INST,&uses_rd,1); 
 
     to_mem_forwarding_check_and_set_control();
     to_alu_forwarding_check_wb(writes,uses_rd);

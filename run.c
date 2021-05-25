@@ -12,20 +12,9 @@
 #include "run.h"
 #include "parse.h"
 
-int flush = 0;
-int take_pc = 0;
-
-int end = 0;
-int jump = 0;
-
-int stall = 0;
-int collision = 0;
-
-int freak_acc = 0;
-uint32_t save_index_1 = 0;
-
-uint32_t save_index_2 = 0;
-uint32_t save_value = 0;
+int flush = 0, take_pc = 0, end = 0, jump = 0;
+int stall = 0, collision = 0, freak_acc = 0;
+uint32_t save_index_1 = 0,save_index_2 = 0,save_value = 0;
 
 
 int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){ 

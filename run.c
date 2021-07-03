@@ -364,6 +364,35 @@ int stall_check()
     }
 }
 
+int handle_exceptions()
+{
+    if (flush)
+    {
+        flush = 0;
+        return 1;
+    }
+    
+    if (take_pc)
+        take_pc = 0;
+    
+    if (jump)
+    {
+        jump = 0;
+        CURRENT_STATE.PIPE[1] = 0;
+        CURRENT_STATE.ID_EX_stall_or_no_inst = 1;
+    }
+    
+    if (stall)
+    {
+        stall = 0;
+        CURRENT_STATE.PIPE[2] = 0;
+        return 1;
+    }
+    
+    return 0;
+    
+}
+
 
 void IF_Stage()
 {
@@ -375,25 +404,9 @@ void IF_Stage()
             end = 1;
         return;
     }
-    if (flush)
-    {
-        flush = 0;
+    if (handle_exceptions())
         return;
-    }
-    if (take_pc)
-        take_pc = 0;
-    if (jump)
-    {
-        jump = 0;
-        CURRENT_STATE.PIPE[1] = 0;
-        CURRENT_STATE.ID_EX_stall_or_no_inst = 1;
-    }
-    if (stall)
-    {
-        stall = 0;
-        CURRENT_STATE.PIPE[2] = 0;
-        return;
-    }
+    
     pc = CURRENT_STATE.PC;
     CURRENT_STATE.PIPE[0] = pc;
     instruction *inst = get_inst_info(pc);

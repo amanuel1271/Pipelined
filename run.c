@@ -29,10 +29,14 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){
         case 0x0: 
             if (funct_field == 0x8)
             {
+                
                 *uses_rd_flag = -1;
                 return NO_WRITE ;
+                
             }
+            
             *uses_rd_flag = 1;
+            
             if (flag)
             {
                 CURRENT_STATE.REGS[rd] = CURRENT_STATE.MEM_WB_ALU_OUT;
@@ -40,37 +44,48 @@ int  write_to_reg(instruction* inst_to_exec,int* uses_rd_flag,int flag){
             }
             else
                 return CURRENT_STATE.EX_MEM_ALU_OUT;
+            
         case 0x2: 
         case 0x3: 
+            
             if (opcode == 0x2)
             {
                 *uses_rd_flag = -1;
                 return NO_WRITE;
             }
+            
             *uses_rd_flag = 2; 
+            
             if (flag)
             {
                 CURRENT_STATE.REGS[31] = CURRENT_STATE.MEM_WB_NPC + 4; 
                 return CURRENT_STATE.MEM_WB_NPC + 4 ;
             }
+            
             else
                 return CURRENT_STATE.EX_MEM_NPC + 4;
+            
         default:  
+            
             if (opcode == 0x4 || opcode == 0x5 || opcode == 0x2B) 
             {
                 *uses_rd_flag = -1;
                 return NO_WRITE;
             }
+            
             if (opcode == 0x23) 
             {
                 if (flag)
                     CURRENT_STATE.REGS[rt] = CURRENT_STATE.MEM_WB_MEM_OUT;
+                
                 *uses_rd_flag = 0;
                 return CURRENT_STATE.MEM_WB_MEM_OUT; 
             }
+            
             else 
             {
                 *uses_rd_flag = 0;
+                
                 if (flag)
                 {
                     CURRENT_STATE.REGS[rt] = CURRENT_STATE.MEM_WB_ALU_OUT;
@@ -89,9 +104,11 @@ void to_mem_forwarding_check_and_set_control()
 {
   instruction* wb_inst  = CURRENT_STATE.MEM_WB_INST; 
   instruction* mem_inst = CURRENT_STATE.EX_MEM_INST; 
+    
   if (OPCODE(wb_inst) == 0x23 && OPCODE(mem_inst) == 0x2B) 
   {
       unsigned char wb_rt = RT(wb_inst),mem_rt = RT(mem_inst);
+      
       if ( (wb_rt == mem_rt) && wb_rt != 0) 
       {
         CURRENT_STATE.write_data_mem_source = 1; 
@@ -100,6 +117,7 @@ void to_mem_forwarding_check_and_set_control()
       else
         CURRENT_STATE.write_data_mem_source = 0; 
   }
+    
   else
   {
     CURRENT_STATE.write_data_mem_source = 0; 
@@ -115,6 +133,7 @@ void rd_and_source(int uses_rd,unsigned char reg, int *source,instruction* inst,
         case 1: 
             if (reg == RD(inst) && reg != 0)
                 *source = value;
+            
             else
                 if (flag || collision)
                     *source = 0;
@@ -123,6 +142,7 @@ void rd_and_source(int uses_rd,unsigned char reg, int *source,instruction* inst,
         case 2: 
             if (reg == 31) 
                 *source = value;
+            
             else
                 if (flag || collision)
                     *source = 0;
@@ -130,11 +150,13 @@ void rd_and_source(int uses_rd,unsigned char reg, int *source,instruction* inst,
         case 0: 
             if (reg == RT(inst) && reg != 0)
                 *source = value;
+            
             else
                 if (flag || collision)
                     *source = 0;
             break;
         default:
+            
             if (flag || collision)
                 *source = 0;
     }
@@ -152,12 +174,14 @@ void forwarding_check_mem_wb(int* first, int* second,int uses_rd)
     switch(opcode)
     {
         case 0x0:   
+            
             if (funct_field == 0x00 || funct_field == 0x02) 
             {
                 *first = 0;
                 unsigned char rt = RT(id_ex_inst); 
                 rd_and_source(uses_rd,rt,second,CURRENT_STATE.MEM_WB_INST,1,1);
             }
+            
             else 
             {
                 unsigned char rs = RS(id_ex_inst);
@@ -165,19 +189,24 @@ void forwarding_check_mem_wb(int* first, int* second,int uses_rd)
 
                 if (funct_field == 0x8) 
                     *second = 0;
+                
                 else
                 {
                     unsigned char rt = RT(id_ex_inst); 
                     rd_and_source(uses_rd,rt,second,CURRENT_STATE.MEM_WB_INST,1,1);    
                 }
+                
             }
             break;
+            
         case 0x2: 
         case 0x3: 
+            
             *first = 0;
             *second = 0;
             break;
         default:
+            
             if (opcode == 0xF) 
             {
                 *first = 0;
@@ -186,6 +215,7 @@ void forwarding_check_mem_wb(int* first, int* second,int uses_rd)
             else 
             {
                 rd_and_source(uses_rd,rs,first,CURRENT_STATE.MEM_WB_INST,1,1);
+                
                 if (opcode == 0x2B || opcode == 0x4 || opcode == 0x5) 
                 {
                     unsigned char rt = RT(id_ex_inst); 
@@ -210,6 +240,7 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
     switch(opcode)
     {
         case 0x0: 
+            
             if (funct_field == 0x00 || funct_field == 0x02) // if sll or srl, doesnt use rs
             {
                 unsigned char rt = RT(id_ex_inst); // uses rt
@@ -219,6 +250,7 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
             {
                 unsigned char rs = RS(id_ex_inst);
                 rd_and_source(uses_rd,rs,first,CURRENT_STATE.EX_MEM_INST,0,2);
+                
                 if (funct_field == 0x8) 
                     ;
                 else
@@ -232,12 +264,14 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
         case 0x3:
             break;
         default: 
+            
             if (opcode == 0xF) 
                 ;
             else 
             {
                 unsigned char rs = RS(id_ex_inst);
                 rd_and_source(uses_rd,rs,first,CURRENT_STATE.EX_MEM_INST,0,2);
+                
                 if (opcode == 0x2B || opcode == 0x4 || opcode == 0x5) 
                 {
                     unsigned char rt = RT(id_ex_inst); 
@@ -255,6 +289,7 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
 void to_alu_forwarding_check_wb(int write,int uses_rd)
 {
     int forwarding_index_1 = 0,forwarding_index_2 = 0;
+    
     if (write == NO_WRITE) 
     {
         CURRENT_STATE.first_alu_source = 0;
@@ -288,19 +323,24 @@ void to_alu_forwarding_check_ex()
     int rd_use;
     instruction* ex_mem = CURRENT_STATE.EX_MEM_INST;
     int write_2 = write_to_reg(ex_mem,&rd_use,0); 
+    
+    
     if (write_2 != NO_WRITE)
     {
         forwarding_check_ex_mem(&forwarding_index_1,&forwarding_index_2,rd_use);
+        
         if (forwarding_index_1 == 2) 
         {
             CURRENT_STATE.EX_MEM_ALU_FORWARD_VALUE = write_2; 
             CURRENT_STATE.first_alu_source = 2;
         }
+        
         if (forwarding_index_2 == 2)
         {
             CURRENT_STATE.EX_MEM_ALU_FORWARD_VALUE = write_2; 
             CURRENT_STATE.second_alu_source = 2;
         }  
+        
         if (collision)
         {
             CURRENT_STATE.first_alu_source = forwarding_index_1;
@@ -326,16 +366,19 @@ int stall_check()
     switch(opcode)
     {
         case 0x0:
+            
             if (func == 0x00 || func == 0x02) 
             {
                 unsigned char rt = RT(id_ex);
                 return (rt == load_rt);
             }
+            
             else if(func == 0x8)
             {
                 unsigned char rs = RS(id_ex);
                 return (rs == load_rt);
             }
+            
             else
             {
                 unsigned char rt = RT(id_ex);
@@ -348,14 +391,17 @@ int stall_check()
             return 0;
             break;
         default:
+            
             if (opcode == 0xF) 
                 return 0;
             else if (opcode == 0x4 || opcode == 0x5) 
+                
             {
                 unsigned char rt = RT(id_ex);
                 unsigned char rs = RS(id_ex);
                 return ( (rt == load_rt) || (load_rt == rs) );
             }
+            
             else
             {
                 unsigned char rs = RS(id_ex);
@@ -397,6 +443,7 @@ int handle_exceptions()
 void IF_Stage()
 {
     uint32_t pc = CURRENT_STATE.PC;
+    
     if (pc - MEM_TEXT_START >= text_size){
         CURRENT_STATE.PIPE[0] = 0;
         CURRENT_STATE.IF_ID_stall_or_no_inst = 1;
@@ -404,6 +451,7 @@ void IF_Stage()
             end = 1;
         return;
     }
+    
     if (handle_exceptions())
         return;
     
@@ -527,6 +575,7 @@ void Execute_ALU_write()
         default:
             alu_source_1 = CURRENT_STATE.EX_MEM_ALU_FORWARD_VALUE;
     }
+    
     switch(CURRENT_STATE.second_alu_source)
     {
         case 0:
@@ -538,6 +587,8 @@ void Execute_ALU_write()
         default:
             alu_source_2 = CURRENT_STATE.EX_MEM_ALU_FORWARD_VALUE;
     }
+    
+    
     if (freak_acc)
     {
         freak_acc = 0;
@@ -560,6 +611,7 @@ void Execute_ALU_write()
     switch(opcode)
     {
         case 0x0:
+            
             if (funct_field == 0x8) 
             {
                 jump = 1;
@@ -574,12 +626,15 @@ void Execute_ALU_write()
             jump = 1;
             CURRENT_STATE.PC = upper_4_bits | jump_target;
             break;
+            
         default:
+            
             if (opcode ==  0x4) 
             {
                 if (alu_source_1 == alu_source_2)
                     ALU_zero = 1;
             } 
+            
             else if (opcode == 0x5 ) 
             {
                 if (alu_source_1 != alu_source_2)
@@ -608,6 +663,7 @@ void EX_Stage()
         CURRENT_STATE.EX_MEM_stall_or_no_inst = 1;
         return;
     }
+    
     Execute_ALU_write();
     CURRENT_STATE.EX_MEM_NPC = CURRENT_STATE.ID_EX_NPC;
     CURRENT_STATE.EX_MEM_INST = CURRENT_STATE.ID_EX_INST;
@@ -631,8 +687,10 @@ void MEM_Stage()
         CURRENT_STATE.PC = CURRENT_STATE.EX_MEM_BR_TARGET;
         flush = 1;
     }
+    
     else
         flush = 0;
+    
     if (stall_check()) 
     {
         stall = 1;
@@ -660,6 +718,7 @@ void MEM_Stage()
             write_value = CURRENT_STATE.EX_MEM_WRITE_VALUE;
         mem_write_32(address,write_value);
     }
+    
     CURRENT_STATE.MEM_WB_NPC = CURRENT_STATE.EX_MEM_NPC;
     CURRENT_STATE.MEM_WB_INST = CURRENT_STATE.EX_MEM_INST;
     CURRENT_STATE.MEM_WB_ALU_OUT = CURRENT_STATE.EX_MEM_ALU_OUT;
@@ -677,6 +736,7 @@ void WB_Stage()
         collision = 1;
         return;
     }
+    
     collision = 0;
 
     if (CURRENT_STATE.MEM_WB_BR_TAKE)

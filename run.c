@@ -251,9 +251,7 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
                 unsigned char rs = RS(id_ex_inst);
                 rd_and_source(uses_rd,rs,first,CURRENT_STATE.EX_MEM_INST,0,2);
                 
-                if (funct_field == 0x8) 
-                    ;
-                else
+                if (funct_field != 0x8)
                 {
                     unsigned char rt = RT(id_ex_inst); 
                     rd_and_source(uses_rd,rt,second,CURRENT_STATE.EX_MEM_INST,0,2); 
@@ -264,10 +262,8 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
         case 0x3:
             break;
         default: 
-            
-            if (opcode == 0xF) 
-                ;
-            else 
+     
+            if (opcode != 0xF)
             {
                 unsigned char rs = RS(id_ex_inst);
                 rd_and_source(uses_rd,rs,first,CURRENT_STATE.EX_MEM_INST,0,2);
@@ -277,8 +273,6 @@ void forwarding_check_ex_mem(int* first, int* second,int uses_rd)
                     unsigned char rt = RT(id_ex_inst); 
                     rd_and_source(uses_rd,rt,second,CURRENT_STATE.EX_MEM_INST,0,2);
                 }
-                else 
-                    ;
             }
     }
 }
